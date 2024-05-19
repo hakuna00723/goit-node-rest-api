@@ -1,29 +1,31 @@
-import { Contact } from "../schemas/contact.js";
+import { Contact } from "../schemas/contactsSchemas.js";
 
-export async function listContacts() {
-  return Contact.find();
+export async function listContacts(filter, options) {
+  return Contact.find(filter)
+    .skip((options.page - 1) * options.limit)
+    .limit(options.limit);
 }
 
-export async function getContactById(contactId) {
-  return Contact.findById(contactId);
+export async function getContactById(filters) {
+  return Contact.findOne(filters);
 }
 
-export async function removeContact(contactId) {
-  return Contact.findByIdAndDelete(contactId);
+export async function removeContact(filters) {
+  return Contact.findOneAndDelete(filters);
 }
 
-export async function addContact(name, email, phone, favorite) {
-  return Contact.create({ name, email, phone, favorite });
+export async function addContact(name, email, phone, favorite, owner) {
+  return Contact.create({ name, email, phone, favorite, owner });
 }
 
-export async function changeContact(contactID, name, email, phone, favorite) {
-  return Contact.findByIdAndUpdate(
-    contactID,
-    { contactID, name, email, phone, favorite },
+export async function changeContact(filters, name, email, phone, favorite) {
+  return Contact.findOneAndUpdate(
+    filters,
+    { name, email, phone, favorite },
     { new: true }
   );
 }
 
-export async function updateStatusContact(contactID, favorite) {
-  return Contact.findByIdAndUpdate(contactID, { favorite }, { new: true });
+export async function updateStatusContact(filters, favorite) {
+  return Contact.findOneAndUpdate(filters, { favorite }, { new: true });
 }
