@@ -1,9 +1,7 @@
 import { User } from "../schemas/usersSchema.js";
-import { updateStatusContact } from "./contactsServices.js";
-import httpError from "../helpers/HttpError.js";
 
-export async function addUser(email, password, subscription) {
-  return User.create({ email, password, subscription });
+export async function addUser(email, password, subscription, avatarURL) {
+  return User.create({ email, password, subscription, avatarURL });
 }
 
 export async function findUserByEmail(email) {
@@ -26,6 +24,14 @@ export async function updateSubscription(userID, newSub) {
   return User.findByIdAndUpdate(
     userID,
     { subscription: newSub },
+    { new: true }
+  );
+}
+
+export async function updateUserAvatar(userID, newAvatar) {
+  return User.findByIdAndUpdate(
+    userID,
+    { avatarURL: newAvatar },
     { new: true }
   );
 }

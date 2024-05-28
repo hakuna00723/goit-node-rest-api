@@ -58,7 +58,6 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   try {
     const { id: owner } = req.user;
-
     const { id } = req.params;
 
     const filters = { _id: id, owner };

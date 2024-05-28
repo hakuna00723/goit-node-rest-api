@@ -1,5 +1,5 @@
-import httpError from "./HttpError.js";
-import { isJwtValid } from "./jwt.js";
+import httpError from "../helpers/HttpError.js";
+import { isJwtValid } from "../helpers/jwt.js";
 import { User } from "../schemas/usersSchema.js";
 
 export const authenticate = async (req, res, next) => {
