@@ -2,9 +2,11 @@ import {
   addUser,
   findUserByEmail,
   findUserByToken,
+  findUserByVerification,
   updateAuthToken,
   updateSubscription,
   updateUserAvatar,
+  updateUserVerification,
 } from "../services/usersServices.js";
 import bcrypt from "bcryptjs";
 import httpError from "../helpers/HttpError.js";
@@ -13,8 +15,9 @@ import { subsLevels } from "../constants/subsLevels.js";
 import gravatar from "gravatar";
 import path from "path";
 import fs from "fs/promises";
-import Jimp from "jimp";
 import { updateImageSize } from "../helpers/updateImageSize.js";
+import { v4 } from "uuid";
+import { sendMail } from "../helpers/sendMail.js";
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -28,18 +31,20 @@ export const registerUser = async (req, res, next) => {
 
     const avatarURL = gravatar.url(email, null, false);
 
-    console.log(email);
-    console.log(avatarURL);
-
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hashSync(password, salt);
+
+    const verificationToken = v4();
 
     const newUser = await addUser(
       email,
       hashedPassword,
       subscription,
-      avatarURL
+      avatarURL,
+      verificationToken
     );
+
+    sendMail(email, verificationToken);
 
     res.status(201).json({
       user: {
@@ -60,6 +65,10 @@ export const loginUser = async (req, res, next) => {
 
     if (user.length === 0) {
       throw httpError(401, "Email or password is wrong");
+    }
+
+    if (user[0].verify === false) {
+      throw httpError(401, "Email should be verified");
     }
 
     const [
@@ -176,6 +185,50 @@ export const updateAvatar = async (req, res, next) => {
     await updateImageSize(resultUpload);
 
     res.status(200).json({ avatarURL: updatedUser.avatarURL });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const verifyUser = async (req, res, next) => {
+  const { verificationToken } = req.params;
+
+  try {
+    const user = await findUserByVerification(verificationToken);
+
+    if (!user) {
+      throw httpError(404, "User not found");
+    }
+
+    await updateUserVerification(user._id, null, true);
+
+    res.status(200).json({ message: "Verification successful" });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const resendVerification = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      throw httpError(400, "Missing required field email");
+    }
+
+    const user = await findUserByEmail(email);
+
+    if (!user) {
+      throw httpError(400, "User doesn't exist");
+    }
+
+    if (user[0].verify === true) {
+      throw httpError(400, "Verification has already been passed");
+    }
+
+    sendMail(email, user.verificationToken);
+
+    res.status(200).json({ message: "Verification email sent" });
   } catch (e) {
     next(e);
   }

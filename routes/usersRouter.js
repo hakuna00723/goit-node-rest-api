@@ -8,6 +8,8 @@ import {
   isUserLoggedIn,
   changeUserSub,
   updateAvatar,
+  verifyUser,
+  resendVerification,
 } from "../controllers/usersControllers.js";
 import { authenticate } from "../middlewares/authenticate.js";
 import { upload } from "../middlewares/upload.js";
@@ -18,9 +20,13 @@ usersRouter.post("/register", validateBody(registerSchema), registerUser);
 
 usersRouter.post("/login", validateBody(loginSchema), loginUser);
 
+usersRouter.post("/verify", resendVerification);
+
 usersRouter.post("/logout", authenticate, logoutUser);
 
 usersRouter.get("/current", authenticate, isUserLoggedIn);
+
+usersRouter.get("/verify/:verificationToken", verifyUser);
 
 usersRouter.patch("/", authenticate, changeUserSub);
 

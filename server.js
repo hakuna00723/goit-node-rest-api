@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import app from "./app.js";
 
 const startServer = async () => {
-  await mongoose
+  return mongoose
     .connect(process.env.DB_HOST)
     .then(() => {
       app.listen(process.env.PORT, () => {
